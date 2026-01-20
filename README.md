@@ -293,6 +293,23 @@ chmod +x run.sh
 ./run.sh
 ```
 
+### Visualisation avec Streamlit
+
+Après avoir exécuté le pipeline, visualisez les données avec le dashboard Streamlit :
+
+```bash
+# Lancer le dashboard
+chmod +x run_dashboard.sh
+./run_dashboard.sh
+```
+
+Le dashboard sera accessible sur **http://localhost:8501** et affichera :
+- 📊 Vue d'ensemble avec métriques principales
+- 📈 KPIs (volumes, taux de croissance)
+- 🌍 Analyse géographique (CA par pays)
+- 📅 Analyse temporelle (agrégations jour/semaine/mois)
+- 📊 Tables de dimension (clients, produits, temps, pays)
+
 ### Accès aux Interfaces
 
 - **Prefect UI** : http://localhost:4200
