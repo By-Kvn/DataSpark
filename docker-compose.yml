@@ -79,7 +79,7 @@ services:
   spark-master:
     image: apache/spark:3.5.0
     container_name: spark-master
-    command: bin/spark-class org.apache.spark.deploy.master.Master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
     environment:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
@@ -92,7 +92,7 @@ services:
   spark-worker-1:
     image: apache/spark:3.5.0
     container_name: spark-worker-1
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     environment:
       - SPARK_WORKER_MEMORY=1g
       - SPARK_WORKER_CORES=1
@@ -106,7 +106,7 @@ services:
   spark-worker-2:
     image: apache/spark:3.5.0
     container_name: spark-worker-2
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     environment:
       - SPARK_WORKER_MEMORY=1g
       - SPARK_WORKER_CORES=1
