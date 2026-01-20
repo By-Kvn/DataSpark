@@ -8,7 +8,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
 from pathlib import Path
-from datetime import datetime
 
 from flows.config import BUCKET_GOLD, get_minio_client
 
@@ -34,12 +33,6 @@ st.markdown("""
         color: #6b7280;
         margin-bottom: 2rem;
     }
-    .metric-card {
-        background-color: #f9fafb;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #3b82f6;
-    }
     .section-title {
         font-size: 1.5rem;
         font-weight: 600;
@@ -48,12 +41,6 @@ st.markdown("""
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 2px solid #e5e7eb;
-    }
-    .stMetric {
-        background-color: #ffffff;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -104,7 +91,7 @@ page = st.sidebar.radio(
 
 # Page 1: Vue d'ensemble
 if page == "Vue d'ensemble":
-    st.markdown('<div class="section-title">Vue d'ensemble du Pipeline</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Vue d\'ensemble du Pipeline</div>', unsafe_allow_html=True)
     
     # Métriques principales
     col1, col2, col3, col4 = st.columns(4)
@@ -133,7 +120,7 @@ if page == "Vue d'ensemble":
             st.markdown("---")
             
             # Graphiques principaux
-            st.markdown('<div class="section-title">Évolution du Chiffre d'Affaires</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Évolution du Chiffre d\'Affaires</div>', unsafe_allow_html=True)
             
             col_left, col_right = st.columns(2)
             
