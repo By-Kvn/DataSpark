@@ -312,25 +312,27 @@ chmod +x run.sh
 
 ```
 DataSpark/
-├── flows/                      # Code source des flows Prefect
-│   ├── config.py              # Configuration centralisée
-│   ├── bronze_ingestion.py    # Couche Bronze
-│   ├── silver_transformation.py # Couche Silver
-│   ├── gold_aggregation.py    # Couche Gold
-│   └── orchestration.py       # Orchestration complète
+├── flows/                              # Code source des flows Prefect
+│   ├── config.py                      # Configuration centralisée (MinIO, Prefect, Spark)
+│   ├── bronze_ingestion.py            # Couche Bronze
+│   ├── silver_transformation.py       # Couche Silver (Pandas)
+│   ├── silver_transformation_spark.py # Couche Silver (PySpark)
+│   ├── gold_aggregation.py            # Couche Gold
+│   └── orchestration.py               # Orchestration complète
 ├── script/
-│   └── generate_data.py       # Génération de données de test
+│   ├── generate_data.py               # Génération de données de test
+│   └── benchmark_pandas_vs_spark.py   # Script de benchmark
 ├── data/
-│   └── sources/               # Données sources CSV
-├── docker-compose.yml         # Configuration Docker
-├── requirements.txt           # Dépendances Python
-├── setup.sh                   # Script d'installation
-├── start-services.sh          # Démarrage des services
-├── run.sh                     # Exécution du pipeline
-├── README.md                  # Ce fichier
-├── README_USAGE.md            # Guide d'utilisation détaillé
-├── INSTALL.md                 # Guide d'installation
-└── TROUBLESHOOTING.md         # Guide de dépannage
+│   └── sources/                       # Données sources CSV
+├── docker-compose.yml                 # Configuration Docker (MinIO, Prefect, Spark)
+├── requirements.txt                   # Dépendances Python
+├── setup.sh                           # Script d'installation
+├── start-services.sh                  # Démarrage des services
+├── run.sh                             # Exécution du pipeline
+├── README.md                          # Ce fichier
+├── README_USAGE.md                    # Guide d'utilisation détaillé
+├── INSTALL.md                         # Guide d'installation
+└── TROUBLESHOOTING.md                 # Guide de dépannage
 ```
 
 ---
@@ -352,8 +354,10 @@ Ce projet démontre :
 
 ## 🔮 Améliorations Futures
 
+- [x] Intégration Spark pour le traitement distribué de grandes volumétries ✅
+- [x] Script de benchmark Pandas vs PySpark ✅
+- [ ] Version PySpark complète pour la couche Gold
 - [ ] Interface Streamlit pour visualiser les KPIs
-- [ ] Intégration Spark pour le traitement distribué de grandes volumétries
 - [ ] Planification automatique (scheduling) avec Prefect
 - [ ] Alertes et notifications en cas d'erreur
 - [ ] Tests unitaires et d'intégration
