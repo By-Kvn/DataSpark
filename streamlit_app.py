@@ -1,6 +1,6 @@
 """
 Streamlit Dashboard pour visualiser les données de la couche Gold.
-Affiche les KPIs, agrégations et statistiques du pipeline ETL.
+Dashboard professionnel pour l'analyse des données ETL.
 """
 import streamlit as st
 import pandas as pd
@@ -8,20 +8,59 @@ import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
 from pathlib import Path
+from datetime import datetime
 
 from flows.config import BUCKET_GOLD, get_minio_client
 
 # Configuration de la page
 st.set_page_config(
-    page_title="DataSpark Dashboard",
+    page_title="DataSpark Analytics Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Titre principal
-st.title("📊 DataSpark - Dashboard Analytique")
-st.markdown("Visualisation des données de la couche **Gold** - KPIs et Agrégations")
+# CSS personnalisé pour un design professionnel
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    .sub-header {
+        font-size: 1.2rem;
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        background-color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #3b82f6;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .stMetric {
+        background-color: #ffffff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Header principal
+st.markdown('<h1 class="main-header">DataSpark Analytics Dashboard</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Visualisation des données analytiques de la couche Gold - Pipeline ETL</p>', unsafe_allow_html=True)
 
 # Fonction pour télécharger depuis MinIO
 @st.cache_data(ttl=3600)  # Cache pour 1 heure
@@ -55,15 +94,17 @@ def load_data_from_gold(object_name: str) -> pd.DataFrame:
 
 
 # Sidebar pour la navigation
-st.sidebar.title("📑 Navigation")
-page = st.sidebar.selectbox(
-    "Choisir une section",
-    ["🏠 Vue d'ensemble", "📈 KPIs", "🌍 Géographie", "📅 Temporel", "📊 Dimensions"]
+st.sidebar.title("Navigation")
+st.sidebar.markdown("---")
+page = st.sidebar.radio(
+    "Sections",
+    ["Vue d'ensemble", "Indicateurs de Performance", "Analyse Géographique", "Analyse Temporelle", "Tables de Dimension"],
+    label_visibility="collapsed"
 )
 
 # Page 1: Vue d'ensemble
-if page == "🏠 Vue d'ensemble":
-    st.header("Vue d'ensemble du Pipeline")
+if page == "Vue d'ensemble":
+    st.markdown('<div class="section-title">Vue d'ensemble du Pipeline</div>', unsafe_allow_html=True)
     
     # Métriques principales
     col1, col2, col3, col4 = st.columns(4)
@@ -81,16 +122,18 @@ if page == "🏠 Vue d'ensemble":
             panier_moyen = fact_achats['montant'].mean() if not fact_achats.empty else 0
             
             with col1:
-                st.metric("💰 Chiffre d'Affaires Total", f"{total_ca:,.0f} €")
+                st.metric("Chiffre d'Affaires Total", f"{total_ca:,.0f} €", delta=None)
             with col2:
-                st.metric("🛒 Transactions", f"{total_transactions:,}")
+                st.metric("Transactions", f"{total_transactions:,}", delta=None)
             with col3:
-                st.metric("👥 Clients Uniques", f"{total_clients:,}")
+                st.metric("Clients Uniques", f"{total_clients:,}", delta=None)
             with col4:
-                st.metric("📦 Panier Moyen", f"{panier_moyen:.2f} €")
+                st.metric("Panier Moyen", f"{panier_moyen:.2f} €", delta=None)
             
-            # Graphique de répartition du CA
-            st.subheader("📊 Répartition du Chiffre d'Affaires")
+            st.markdown("---")
+            
+            # Graphiques principaux
+            st.markdown('<div class="section-title">Évolution du Chiffre d'Affaires</div>', unsafe_allow_html=True)
             
             col_left, col_right = st.columns(2)
             
@@ -107,9 +150,16 @@ if page == "🏠 Vue d'ensemble":
                         x='date',
                         y='ca_total',
                         title="CA par Jour (30 derniers jours)",
-                        labels={'ca_total': 'CA Total (€)', 'date': 'Date'}
+                        labels={'ca_total': 'CA Total (€)', 'date': 'Date'},
+                        color_discrete_sequence=['#3b82f6']
                     )
-                    fig_ca_jour.update_traces(line_color='#1f77b4', line_width=2)
+                    fig_ca_jour.update_layout(
+                        plot_bgcolor='white',
+                        paper_bgcolor='white',
+                        font=dict(family="Arial", size=12),
+                        title_font_size=16
+                    )
+                    fig_ca_jour.update_traces(line_width=3)
                     st.plotly_chart(fig_ca_jour, use_container_width=True)
             
             with col_right:
@@ -125,30 +175,48 @@ if page == "🏠 Vue d'ensemble":
                         x='periode',
                         y='ca_total',
                         title="CA par Mois",
-                        labels={'ca_total': 'CA Total (€)', 'periode': 'Période'}
+                        labels={'ca_total': 'CA Total (€)', 'periode': 'Période'},
+                        color_discrete_sequence=['#10b981']
                     )
-                    fig_ca_mois.update_traces(marker_color='#2ca02c')
+                    fig_ca_mois.update_layout(
+                        plot_bgcolor='white',
+                        paper_bgcolor='white',
+                        font=dict(family="Arial", size=12),
+                        title_font_size=16
+                    )
                     st.plotly_chart(fig_ca_mois, use_container_width=True)
             
             # Statistiques de distribution
             if not kpi_distributions.empty:
-                st.subheader("📈 Statistiques de Distribution")
-                st.dataframe(kpi_distributions, use_container_width=True)
+                st.markdown('<div class="section-title">Statistiques de Distribution</div>', unsafe_allow_html=True)
+                st.dataframe(
+                    kpi_distributions.style.format({
+                        'moyenne': '{:.2f}',
+                        'mediane': '{:.2f}',
+                        'ecart_type': '{:.2f}',
+                        'min': '{:.2f}',
+                        'max': '{:.2f}',
+                        'q25': '{:.2f}',
+                        'q75': '{:.2f}'
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
         else:
-            st.warning("⚠️ Aucune donnée disponible. Exécutez d'abord le pipeline ETL.")
+            st.warning("Aucune donnée disponible. Exécutez d'abord le pipeline ETL.")
             
     except Exception as e:
         st.error(f"Erreur lors du chargement des données: {str(e)}")
-        st.info("💡 Assurez-vous que le pipeline ETL a été exécuté et que MinIO est accessible.")
+        st.info("Assurez-vous que le pipeline ETL a été exécuté et que MinIO est accessible.")
 
 
 # Page 2: KPIs
-elif page == "📈 KPIs":
-    st.header("Indicateurs de Performance (KPIs)")
+elif page == "Indicateurs de Performance":
+    st.markdown('<div class="section-title">Indicateurs de Performance (KPIs)</div>', unsafe_allow_html=True)
     
     try:
         # KPI: Volumes par période
-        st.subheader("📅 Volumes de Transactions")
+        st.subheader("Volumes de Transactions")
         
         col1, col2 = st.columns(2)
         
@@ -164,7 +232,12 @@ elif page == "📈 KPIs":
                     color='ca_total',
                     title="Volume de Transactions par Jour",
                     labels={'nb_achats': 'Nombre d\'achats', 'date': 'Date', 'ca_total': 'CA (€)'},
-                    color_continuous_scale='Viridis'
+                    color_continuous_scale='Blues'
+                )
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
@@ -179,12 +252,20 @@ elif page == "📈 KPIs":
                     x='periode',
                     y='nb_achats',
                     title="Volume de Transactions par Semaine",
-                    labels={'nb_achats': 'Nombre d\'achats', 'periode': 'Semaine'}
+                    labels={'nb_achats': 'Nombre d\'achats', 'periode': 'Semaine'},
+                    color_discrete_sequence=['#8b5cf6']
+                )
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
+        st.markdown("---")
+        
         # KPI: Taux de croissance
-        st.subheader("📈 Taux de Croissance Mensuel")
+        st.subheader("Taux de Croissance Mensuel")
         kpi_taux_croissance = load_data_from_gold("kpi_taux_croissance.parquet")
         if not kpi_taux_croissance.empty:
             kpi_taux_croissance['periode'] = kpi_taux_croissance.apply(
@@ -192,34 +273,43 @@ elif page == "📈 KPIs":
             )
             
             fig = go.Figure()
+            colors = ['#10b981' if x > 0 else '#ef4444' for x in kpi_taux_croissance['taux_croissance']]
             fig.add_trace(go.Bar(
                 x=kpi_taux_croissance['periode'],
                 y=kpi_taux_croissance['taux_croissance'],
                 name='Taux de croissance (%)',
-                marker_color=kpi_taux_croissance['taux_croissance'].apply(
-                    lambda x: 'green' if x > 0 else 'red'
-                )
+                marker_color=colors
             ))
             fig.update_layout(
                 title="Taux de Croissance Mensuel (%)",
                 xaxis_title="Période",
-                yaxis_title="Taux de croissance (%)"
+                yaxis_title="Taux de croissance (%)",
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font=dict(family="Arial", size=12)
             )
             st.plotly_chart(fig, use_container_width=True)
             
-            st.dataframe(kpi_taux_croissance[['periode', 'ca', 'taux_croissance']], use_container_width=True)
+            st.dataframe(
+                kpi_taux_croissance[['periode', 'ca', 'taux_croissance']].style.format({
+                    'ca': '{:,.0f} €',
+                    'taux_croissance': '{:.2f} %'
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
         
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
 
 
 # Page 3: Géographie
-elif page == "🌍 Géographie":
-    st.header("Analyse Géographique")
+elif page == "Analyse Géographique":
+    st.markdown('<div class="section-title">Analyse Géographique</div>', unsafe_allow_html=True)
     
     try:
         # CA par pays
-        st.subheader("💰 Chiffre d'Affaires par Pays")
+        st.subheader("Chiffre d'Affaires par Pays")
         kpi_ca_pays = load_data_from_gold("kpi_ca_par_pays.parquet")
         
         if not kpi_ca_pays.empty:
@@ -236,7 +326,12 @@ elif page == "🌍 Géographie":
                     color='ca_total',
                     color_continuous_scale='Blues'
                 )
-                fig_bar.update_xaxes(tickangle=45)
+                fig_bar.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12),
+                    xaxis_tickangle=-45
+                )
                 st.plotly_chart(fig_bar, use_container_width=True)
             
             with col2:
@@ -247,17 +342,25 @@ elif page == "🌍 Géographie":
                     names='pays',
                     title="Répartition du CA par Pays (%)"
                 )
+                fig_pie.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
+                )
                 st.plotly_chart(fig_pie, use_container_width=True)
             
+            st.markdown("---")
+            
             # Tableau détaillé
-            st.subheader("📋 Détails par Pays")
+            st.subheader("Détails par Pays")
             st.dataframe(
                 kpi_ca_pays[['pays', 'ca_total', 'ca_moyen', 'nb_achats']].style.format({
                     'ca_total': '{:,.0f} €',
                     'ca_moyen': '{:.2f} €',
                     'nb_achats': '{:,}'
                 }),
-                use_container_width=True
+                use_container_width=True,
+                hide_index=True
             )
         else:
             st.warning("Aucune donnée géographique disponible.")
@@ -267,16 +370,17 @@ elif page == "🌍 Géographie":
 
 
 # Page 4: Temporel
-elif page == "📅 Temporel":
-    st.header("Analyse Temporelle")
+elif page == "Analyse Temporelle":
+    st.markdown('<div class="section-title">Analyse Temporelle</div>', unsafe_allow_html=True)
     
     try:
         # Agrégations temporelles
-        st.subheader("📊 Agrégations Temporelles")
+        st.subheader("Agrégations Temporelles")
         
         agg_type = st.selectbox(
             "Choisir la granularité",
-            ["Jour", "Semaine", "Mois"]
+            ["Jour", "Semaine", "Mois"],
+            key="agg_type"
         )
         
         if agg_type == "Jour":
@@ -290,11 +394,27 @@ elif page == "📅 Temporel":
                     x='date',
                     y='ca_total',
                     title="CA Total par Jour",
-                    labels={'ca_total': 'CA Total (€)', 'date': 'Date'}
+                    labels={'ca_total': 'CA Total (€)', 'date': 'Date'},
+                    color_discrete_sequence=['#3b82f6']
                 )
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
+                )
+                fig.update_traces(line_width=3)
                 st.plotly_chart(fig, use_container_width=True)
                 
-                st.dataframe(agg_data, use_container_width=True)
+                st.dataframe(
+                    agg_data.style.format({
+                        'ca_total': '{:,.2f} €',
+                        'ca_moyen': '{:.2f} €',
+                        'nb_transactions': '{:,}',
+                        'nb_achats': '{:,}'
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
         
         elif agg_type == "Semaine":
             agg_data = load_data_from_gold("agregation_semaine.parquet")
@@ -308,11 +428,26 @@ elif page == "📅 Temporel":
                     x='periode',
                     y='ca_total',
                     title="CA Total par Semaine",
-                    labels={'ca_total': 'CA Total (€)', 'periode': 'Semaine'}
+                    labels={'ca_total': 'CA Total (€)', 'periode': 'Semaine'},
+                    color_discrete_sequence=['#8b5cf6']
+                )
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 
-                st.dataframe(agg_data, use_container_width=True)
+                st.dataframe(
+                    agg_data.style.format({
+                        'ca_total': '{:,.2f} €',
+                        'ca_moyen': '{:.2f} €',
+                        'nb_transactions': '{:,}',
+                        'nb_achats': '{:,}'
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
         
         elif agg_type == "Mois":
             agg_data = load_data_from_gold("agregation_mois.parquet")
@@ -326,76 +461,107 @@ elif page == "📅 Temporel":
                     x='periode',
                     y='ca_total',
                     title="CA Total par Mois",
-                    labels={'ca_total': 'CA Total (€)', 'periode': 'Mois'}
+                    labels={'ca_total': 'CA Total (€)', 'periode': 'Mois'},
+                    color_discrete_sequence=['#10b981']
+                )
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(family="Arial", size=12)
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 
-                st.dataframe(agg_data, use_container_width=True)
+                st.dataframe(
+                    agg_data.style.format({
+                        'ca_total': '{:,.2f} €',
+                        'ca_moyen': '{:.2f} €',
+                        'nb_transactions': '{:,}',
+                        'nb_achats': '{:,}'
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
                 
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
 
 
 # Page 5: Dimensions
-elif page == "📊 Dimensions":
-    st.header("Tables de Dimension")
+elif page == "Tables de Dimension":
+    st.markdown('<div class="section-title">Tables de Dimension</div>', unsafe_allow_html=True)
     
     try:
         dim_type = st.selectbox(
             "Choisir une dimension",
-            ["Clients", "Produits", "Temps", "Pays"]
+            ["Clients", "Produits", "Temps", "Pays"],
+            key="dim_type"
         )
         
         if dim_type == "Clients":
             dim_data = load_data_from_gold("dim_client.parquet")
-            st.subheader("👥 Dimension Clients")
+            st.subheader("Dimension Clients")
             if not dim_data.empty:
-                st.metric("Nombre de clients", len(dim_data))
-                st.dataframe(dim_data.head(100), use_container_width=True)
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.metric("Nombre de clients", len(dim_data))
+                
+                st.dataframe(dim_data.head(100), use_container_width=True, hide_index=True)
                 
                 # Répartition par pays
                 if 'pays' in dim_data.columns:
+                    st.markdown("---")
+                    st.subheader("Répartition des Clients par Pays")
                     pays_count = dim_data['pays'].value_counts()
                     fig = px.pie(
                         values=pays_count.values,
                         names=pays_count.index,
-                        title="Répartition des Clients par Pays"
+                        title="Distribution des Clients par Pays"
+                    )
+                    fig.update_layout(
+                        plot_bgcolor='white',
+                        paper_bgcolor='white',
+                        font=dict(family="Arial", size=12)
                     )
                     st.plotly_chart(fig, use_container_width=True)
         
         elif dim_type == "Produits":
             dim_data = load_data_from_gold("dim_produit.parquet")
-            st.subheader("🛍️ Dimension Produits")
+            st.subheader("Dimension Produits")
             if not dim_data.empty:
-                st.metric("Nombre de produits", len(dim_data))
-                st.dataframe(dim_data, use_container_width=True)
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.metric("Nombre de produits", len(dim_data))
+                st.dataframe(dim_data, use_container_width=True, hide_index=True)
         
         elif dim_type == "Temps":
             dim_data = load_data_from_gold("dim_temps.parquet")
-            st.subheader("📅 Dimension Temps")
+            st.subheader("Dimension Temps")
             if not dim_data.empty:
-                st.metric("Nombre de jours uniques", len(dim_data))
-                st.dataframe(dim_data.head(100), use_container_width=True)
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.metric("Nombre de jours uniques", len(dim_data))
+                st.dataframe(dim_data.head(100), use_container_width=True, hide_index=True)
         
         elif dim_type == "Pays":
             dim_data = load_data_from_gold("dim_pays.parquet")
-            st.subheader("🌍 Dimension Pays")
+            st.subheader("Dimension Pays")
             if not dim_data.empty:
-                st.metric("Nombre de pays", len(dim_data))
-                st.dataframe(dim_data, use_container_width=True)
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.metric("Nombre de pays", len(dim_data))
+                st.dataframe(dim_data, use_container_width=True, hide_index=True)
                 
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("### ℹ️ Information")
+st.sidebar.markdown("### Information")
 st.sidebar.info(
     "Ce dashboard affiche les données de la couche **Gold** "
     "du pipeline ETL DataSpark.\n\n"
     "Les données sont chargées depuis MinIO."
 )
 
-# Instructions pour lancer
-st.sidebar.markdown("### 🚀 Lancer le Dashboard")
+st.sidebar.markdown("### Lancer le Dashboard")
 st.sidebar.code("streamlit run streamlit_app.py", language="bash")
