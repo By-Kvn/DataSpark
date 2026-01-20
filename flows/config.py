@@ -38,6 +38,43 @@ def configure_prefect() -> None:
 # Spark configuration
 SPARK_MASTER_URL = os.getenv("SPARK_MASTER_URL", "spark://localhost:7077")
 
+def _setup_java_home():
+    """
+    Automatically configure JAVA_HOME if not set.
+    Tries to find Java installed via Homebrew.
+    """
+    if not os.getenv("JAVA_HOME"):
+        try:
+            # Try to find Java via Homebrew
+            import subprocess
+            result = subprocess.run(
+                ["brew", "--prefix", "openjdk@17"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                java_path = result.stdout.strip()
+                java_home = f"{java_path}/libexec/openjdk.jdk/Contents/Home"
+                if os.path.exists(java_home):
+                    os.environ["JAVA_HOME"] = java_home
+                    print(f"✅ JAVA_HOME auto-configured: {java_home}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
+            # If brew is not available or fails, try system Java
+            try:
+                result = subprocess.run(
+                    ["/usr/libexec/java_home", "-v", "17"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    java_home = result.stdout.strip()
+                    os.environ["JAVA_HOME"] = java_home
+                    print(f"✅ JAVA_HOME auto-configured: {java_home}")
+            except Exception:
+                pass
+
 def get_spark_session(app_name: str = "DataSpark", use_cluster: bool = False):
     """
     Create and return a SparkSession configured for the cluster or local mode.
@@ -49,6 +86,9 @@ def get_spark_session(app_name: str = "DataSpark", use_cluster: bool = False):
     Returns:
         SparkSession instance
     """
+    # Auto-configure JAVA_HOME if not set
+    _setup_java_home()
+    
     from pyspark.sql import SparkSession
     
     builder = SparkSession.builder.appName(app_name)
