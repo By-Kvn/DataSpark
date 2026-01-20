@@ -269,7 +269,10 @@ docker-compose up -d
 chmod +x setup.sh
 ./setup.sh
 
-# 4. (Optionnel) Générer des données de test
+# 4. (Optionnel) Configurer Java pour PySpark
+source setup_java.sh
+
+# 5. (Optionnel) Générer des données de test
 python script/generate_data.py
 ```
 
