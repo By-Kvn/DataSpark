@@ -35,6 +35,30 @@ def get_minio_client() -> Minio:
 def configure_prefect() -> None:
     os.environ["PREFECT_API_URL"] = PREFECT_API_URL
 
+# Spark configuration
+SPARK_MASTER_URL = os.getenv("SPARK_MASTER_URL", "spark://localhost:7077")
+
+def get_spark_session(app_name: str = "DataSpark"):
+    """
+    Create and return a SparkSession configured for the cluster.
+    
+    Args:
+        app_name: Name of the Spark application
+        
+    Returns:
+        SparkSession instance
+    """
+    from pyspark.sql import SparkSession
+    
+    spark = SparkSession.builder \
+        .appName(app_name) \
+        .master(SPARK_MASTER_URL) \
+        .config("spark.sql.adaptive.enabled", "true") \
+        .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
+        .getOrCreate()
+    
+    return spark
+
 if __name__ == "__main__":
     client = get_minio_client()
     print(client.list_buckets())
