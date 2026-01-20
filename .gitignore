@@ -1,3 +1,4 @@
+# Environment variables
 .env
 .env.*
 !.env.example
@@ -27,41 +28,16 @@ env/
 .DS_Store
 .idea/
 .vscode/
+*.swp
+*.swo
+Thumbs.db
 
 # Prefect
 .prefect/
 
 # Logs
 *.log
-# Environnement virtuel Python
-venv/
-env/
-ENV/
 
-# Fichiers Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
-# Fichiers de configuration locaux
-.env
-*.env.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Base de données
+# Database
 *.db
 *.sqlite
