@@ -11,11 +11,13 @@ from pyspark.sql.types import IntegerType, DoubleType, StringType, DateType
 from datetime import datetime
 
 from prefect import flow, task
+from prefect.tasks import task_input_hash
+from prefect.cache_policies import NO_CACHE
 
 from config import BUCKET_BRONZE, BUCKET_SILVER, get_minio_client, get_spark_session
 
 
-@task(name="download_from_bronze_spark", retries=2)
+@task(name="download_from_bronze_spark", retries=2, cache_policy=NO_CACHE)
 def download_from_bronze_spark(spark: SparkSession, object_name: str) -> DataFrame:
     """
     Download CSV file from bronze bucket and load as Spark DataFrame.
@@ -46,7 +48,7 @@ def download_from_bronze_spark(spark: SparkSession, object_name: str) -> DataFra
     return df
 
 
-@task(name="clean_null_values_spark", retries=1)
+@task(name="clean_null_values_spark", retries=1, cache_policy=NO_CACHE)
 def clean_null_values_spark(df: DataFrame, strategy: str = "drop") -> DataFrame:
     """
     Clean null values and aberrant data using Spark.
@@ -109,7 +111,7 @@ def clean_null_values_spark(df: DataFrame, strategy: str = "drop") -> DataFrame:
     return df_cleaned
 
 
-@task(name="standardize_dates_spark", retries=1)
+@task(name="standardize_dates_spark", retries=1, cache_policy=NO_CACHE)
 def standardize_dates_spark(df: DataFrame) -> DataFrame:
     """
     Standardize date formats to ISO format (YYYY-MM-DD) using Spark.
@@ -138,7 +140,7 @@ def standardize_dates_spark(df: DataFrame) -> DataFrame:
     return df_std
 
 
-@task(name="normalize_data_types_spark", retries=1)
+@task(name="normalize_data_types_spark", retries=1, cache_policy=NO_CACHE)
 def normalize_data_types_spark(df: DataFrame, table_name: str) -> DataFrame:
     """
     Normalize data types according to schema using Spark.
@@ -178,7 +180,7 @@ def normalize_data_types_spark(df: DataFrame, table_name: str) -> DataFrame:
     return df_norm
 
 
-@task(name="deduplicate_records_spark", retries=1)
+@task(name="deduplicate_records_spark", retries=1, cache_policy=NO_CACHE)
 def deduplicate_records_spark(df: DataFrame, table_name: str) -> DataFrame:
     """
     Remove duplicate records based on primary key using Spark.
@@ -210,7 +212,7 @@ def deduplicate_records_spark(df: DataFrame, table_name: str) -> DataFrame:
     return df_dedup
 
 
-@task(name="quality_checks_spark", retries=1)
+@task(name="quality_checks_spark", retries=1, cache_policy=NO_CACHE)
 def quality_checks_spark(df: DataFrame, table_name: str) -> Dict:
     """
     Perform data quality checks using Spark.
@@ -267,7 +269,7 @@ def quality_checks_spark(df: DataFrame, table_name: str) -> Dict:
     return quality_report
 
 
-@task(name="upload_to_silver_spark", retries=2)
+@task(name="upload_to_silver_spark", retries=2, cache_policy=NO_CACHE)
 def upload_to_silver_spark(df: DataFrame, object_name: str) -> str:
     """
     Upload cleaned Spark DataFrame to silver bucket as Parquet.
