@@ -322,8 +322,8 @@ def silver_transformation_flow_spark(bronze_files: Dict[str, str]) -> Dict:
     Returns:
         Dictionary with silver file names and quality reports
     """
-    # Create Spark session
-    spark = get_spark_session("SilverTransformation")
+    # Create Spark session (use local mode for testing, set use_cluster=True for production)
+    spark = get_spark_session("SilverTransformation", use_cluster=False)
     
     results = {}
 

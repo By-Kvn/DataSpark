@@ -38,21 +38,33 @@ def configure_prefect() -> None:
 # Spark configuration
 SPARK_MASTER_URL = os.getenv("SPARK_MASTER_URL", "spark://localhost:7077")
 
-def get_spark_session(app_name: str = "DataSpark"):
+def get_spark_session(app_name: str = "DataSpark", use_cluster: bool = False):
     """
-    Create and return a SparkSession configured for the cluster.
+    Create and return a SparkSession configured for the cluster or local mode.
     
     Args:
         app_name: Name of the Spark application
+        use_cluster: If True, try to connect to cluster. If False or cluster unavailable, use local mode.
         
     Returns:
         SparkSession instance
     """
     from pyspark.sql import SparkSession
     
-    spark = SparkSession.builder \
-        .appName(app_name) \
-        .master(SPARK_MASTER_URL) \
+    builder = SparkSession.builder.appName(app_name)
+    
+    if use_cluster:
+        # Try to connect to cluster
+        try:
+            builder = builder.master(SPARK_MASTER_URL)
+        except:
+            # Fallback to local mode
+            builder = builder.master("local[*]")
+    else:
+        # Use local mode (default for testing)
+        builder = builder.master("local[*]")
+    
+    spark = builder \
         .config("spark.sql.adaptive.enabled", "true") \
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
         .getOrCreate()
